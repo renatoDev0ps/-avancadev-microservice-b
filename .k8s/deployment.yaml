@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: microserviceb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: microserviceb
+  template:
+    metadata:
+      labels:
+        app: microserviceb
+    spec:
+      containers:
+        - name: microserviceb
+          image: 1renatodevops/microservice-kube:latest
+          resources:
+              limits:
+                memory: 1Gi
+                cpu: 500m
+              requests:
+                memory: 1Gi
+          ports:
+            - containerPort: 9001
+          volumeMounts:
+          - name: microserviceb-conf
+            subPath: .env
+            mountPath: /go/src/fullcycle/.env
+          env:
+            - name: RABBITMQ_DEFAULT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: microserviceb-secret
+                  key: RABBITMQ_DEFAULT_USER
+            - name: RABBITMQ_DEFAULT_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: microserviceb-secret
+                  key: RABBITMQ_DEFAULT_PASS
+      volumes:
+      - name: microserviceb-conf
+        configMap:
+          name: microserviceb-conf
+          items:
+            - key: env
+              path: .env
